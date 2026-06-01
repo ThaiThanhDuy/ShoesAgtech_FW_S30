@@ -45,6 +45,7 @@
 #include <AP_WheelEncoder/AP_WheelRateControl.h>
 #include <AR_Motors/AP_MotorsUGV.h>
 #include <AR_WPNav/AR_WPNav_OA.h>
+#include <SRV_Channel/SRV_Channel.h>
 #if AP_EXTERNAL_CONTROL_ENABLED
 #include "AP_ExternalControl_Rover.h"
 #endif

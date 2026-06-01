@@ -272,19 +272,38 @@ public:
   void handle_tack_request() override;
 
 protected:
-  int8_t _rail_last_enable{-1};
-  float _rail_last_speed{-1.0f};
-  float _rail_ramped_speed{0.0f};
-  bool _rail_last_armed{false};
+  enum class RailSubMode : uint8_t {
+    VELOCITY_RAMP =
+        0, // Giai đoạn đề ba và tăng tốc vòng kín theo vận tốc (m/s)
+    THROTTLE_FOLLOW =
+        1 // Giai đoạn khóa cứng ổn định theo % ga vật lý (Actuator-loop)
+  };
+
+  // === GIAI ĐOẠN 1: CÁC BIẾN KÍCH THƯỚC 4-BYTE (UINT32_T, FLOAT) ===
   uint32_t _rail_last_update_ms{0U};
   uint32_t _rail_last_log_ms{0U};
-  bool _rail_pitch_warning_sent{false};
   uint32_t _rail_pitch_safe_start_ms{0U};
-  // Khai báo biến lưu vết động học và bộ lọc thông thấp cho Mode Acro
+  uint32_t _rail_velocity_reached_ms{
+      0U}; // THÊM MỚI: Thời điểm đạt ngưỡng vận tốc mục tiêu
+
+  float _rail_last_speed{-1.0f};
+  float _rail_ramped_speed{0.0f};
   float _rail_last_pitch_rate_rads{
       0.0f}; // Vận tốc góc Pitch chu kỳ trước (q[k-1])
   float _rail_filtered_pitch_accel_degs2{
       0.0f}; // Gia tốc góc Pitch đã lọc qua LPF
+
+  // === GIAI ĐOẠN 2: CÁC BIẾN KÍCH THƯỚC 1-BYTE (INT8_T, ENUM) ===
+  int8_t _rail_last_enable{-1};
+  RailSubMode _rail_sub_mode{
+      RailSubMode::VELOCITY_RAMP}; // THÊM MỚI: Trạng thái hiện tại của hệ thống
+                                   // Rail
+
+  // === GIAI ĐOẠN 3: CÁC BIẾN ĐỊNH DẠNG BOOLEAN (CỜ LOGIC) ===
+  bool _rail_last_armed{false};
+  bool _rail_pitch_warning_sent{false};
+  bool _rail_velocity_target_achieved{
+      false}; // THÊM MỚI: Cờ xác nhận vận tốc thực tế đã ổn định
 };
 
 class ModeAuto : public Mode {
