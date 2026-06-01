@@ -224,8 +224,7 @@ void ModeAcro::update() {
   }
 }
 
-// UPDATE V5 Nâng cấp hệ thống tiết kiệm năng lượng và điều chỉnh theo %
-// throttle
+// UPDATE V5 Hệ thống tiết kiệm năng lượng, điều chỉnh theo %throttle
 
 bool ModeAcro::requires_velocity() const {
   return !g2.motors.have_skid_steering();
