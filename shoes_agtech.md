@@ -7,17 +7,19 @@ This repository contains the modified ArduPilot source code utilized in our comm
 
 ---
 
-## SECTION A: SOURCE CODE DISCLOSURE (MỤC A: CÔNG KHAI MÃ NGUỒN)
+## SECTION A: SOURCE CODE DISCLOSURE
 
 ### 1. License & Derivative Works
 
 This system integrates derivative works of the ArduPilot project. Under the strong copyleft requirements of GPLv3, all modifications, custom libraries, and hardware-specific drivers developed within the ArduPilot ecosystem are open-source.
 
 - **Upstream Repository**: [https://github.com/ArduPilot/ardupilot](https://github.com/ArduPilot/ardupilot)
+
 - **Our Core Modifications (Version 2.0)**:
-    - **Custom Flight Mode (`mode.cpp`)**: Developed an isolated `Mode` class inherited from the `Mode` base class in ArduRover to handle specific autonomous tracking and non-linear hydrodynamic control logic.
-    - **Telemetry & Sensor Variables**: Expanded global structures and added specific data logging variables within the codebase to acquire, log (DataFlash), and stream real-time raw values from specialized telemetry sensors.
-    - **System Reliability**: Customized fail-safe configurations and localized sensor-synchronization layers.
+    - **Modified Native Flight Modes (`mode_auto.cpp`, `mode_acro.cpp`)**: Overrode and customized the standard behavior of `ModeAuto` and `ModeAcro` within the ArduRover codebase to implement specialized steering tracking and non-linear hydrodynamic response logic.
+    - **Custom Advanced Parameters**: Embedded new user-configurable parameters (`AP_Param`) into the system architecture, enabling precise runtime tuning of the newly injected control variables.
+    - **Custom Proprietary Library Integration**: Introduced a dedicated custom library subsystem integrated natively into the ArduPilot compilation architecture (`libraries/`) to encapsulate high-level algorithmic processes.
+    - **Sensor Data Acquisition & Persistence**: Expanded internal global structures and data allocation layers with dedicated variables to interface, process raw values from specialized external sensors, and permanently log telemetry payloads via the onboard `DataFlash` logging architecture.
 
 ### 2. How to Access the Source Code
 
@@ -29,7 +31,7 @@ Downstream users and developers can retrieve the exact state of the production f
 
 ---
 
-## SECTION B: INSTALLATION & AUTHENTICATION INFORMATION (MỤC B: THÔNG TIN CÀI ĐẶT VÀ KHÓA NẠP)
+## SECTION B: INSTALLATION & AUTHENTICATION INFORMATION
 
 In compliance with the Anti-Tivoization provisions of the GPLv3, the hardware architecture remains unlocked. Users retain the legal and technical right to execute modified versions of the software on the consumer-facing hardware platform.
 
