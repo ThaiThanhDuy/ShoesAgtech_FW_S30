@@ -1,6 +1,9 @@
-# PRODUCT FIRMWARE - ARDUPILOT DERIVATIVE SYSTEM
+# PRODUCT FIRMWARE - ARDUPILOT DERIVATIVE SYSTEM (v2.0)
 
 This repository contains the modified ArduPilot source code utilized in our commercial autonomous vehicle platforms. This software is distributed under the **GNU General Public License v3.0 (GPLv3)**. In strict compliance with Section 6 and Section 7 of the GPLv3, both the modified source code and the technical installation pathways are openly provided to downstream users.
+
+**Current Production Version:** `v2.0`  
+**Target Vehicle Codebase:** `ArduRover`
 
 ---
 
@@ -11,17 +14,17 @@ This repository contains the modified ArduPilot source code utilized in our comm
 This system integrates derivative works of the ArduPilot project. Under the strong copyleft requirements of GPLv3, all modifications, custom libraries, and hardware-specific drivers developed within the ArduPilot ecosystem are open-source.
 
 - **Upstream Repository**: [https://github.com/ArduPilot/ardupilot](https://github.com/ArduPilot/ardupilot)
-- **Our Core Modifications**:
-    - Optimized thrust-differentiation algorithms within `AP_Motors` for nonlinear hydrodynamic resistance.
-    - Customized fail-safe configurations and localized sensor-synchronization layers.
-    - Fixed-point math optimization updates tailored for target microcontrollers.
+- **Our Core Modifications (Version 2.0)**:
+    - **Custom Flight Mode (`mode.cpp`)**: Developed an isolated `Mode` class inherited from the `Mode` base class in ArduRover to handle specific autonomous tracking and non-linear hydrodynamic control logic.
+    - **Telemetry & Sensor Variables**: Expanded global structures and added specific data logging variables within the codebase to acquire, log (DataFlash), and stream real-time raw values from specialized telemetry sensors.
+    - **System Reliability**: Customized fail-safe configurations and localized sensor-synchronization layers.
 
 ### 2. How to Access the Source Code
 
 Downstream users and developers can retrieve the exact state of the production firmware through the following channels:
 
 - **Git Repository**: `git clone https://github.com/your-organization/ardupilot-production.git`
-- **Release Branch**: Access the `stable-production-release` tag for verified commercial binaries and corresponding source code.
+- **Release Branch / Tag**: Access the `v2.0-release` tag for verified commercial binaries and corresponding source code.
 - **Physical Distribution**: In compliance with GPLv3, a physical copy of this source code can be requested via our technical support department for a period of three (3) years from the date of product purchase.
 
 ---
@@ -45,6 +48,9 @@ To rebuild the production binary from source, execute the following toolchain se
 git clone --recursive [https://github.com/your-organization/ardupilot-production.git](https://github.com/your-organization/ardupilot-production.git)
 cd ardupilot-production
 
+# Checkout the specific commercial version 2.0 tag
+git checkout tags/v2.0-release
+
 # Install the required ARM GCC compiler toolchain and dependencies
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 source ~/.profile
@@ -52,8 +58,8 @@ source ~/.profile
 # Configure the build target for the specific hardware board
 ./waf configure --board=your_target_board_name
 
-# Compile the firmware binary
-./waf vehicle_type
+# Compile the firmware binary specifically for Rover architecture
+./waf rover
 ```
 
 ### 3. Firmware Flashing Procedure
@@ -67,16 +73,16 @@ Open Mission Planner or QGroundControl.
 
 Navigate to Setup -> Install Firmware -> Select Load custom firmware.
 
-Path to the compiled binary and initiate the upload process. The onboard bootloader will execute the flashing sequence automatically.
+Path to the compiled binary (.apj) and initiate the upload process. The onboard bootloader will execute the flashing sequence automatically.
 
 Method II: Via Command Line Interface (CLI Toolchain)
 Alternatively, use the integrated waf deployment mechanism directly over the USB interface:
 
-Bash
+```bash
+# Flash the compiled rover binary via direct USB connection
+./waf rover --upload
+```
 
-# Flash the compiled binary via direct USB connection
-
-./waf vehicle_type --upload
 LEGAL DISCLAIMER & COPYRIGHT NOTICE
 Notice: This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the authors or copyright holders be liable for any direct, indirect, incidental, special, exemplary, or consequential damages arising in any way out of the use of this software.
 
