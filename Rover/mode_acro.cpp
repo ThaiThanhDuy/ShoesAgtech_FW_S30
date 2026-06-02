@@ -146,7 +146,7 @@ void ModeAcro::update() {
       }
       calc_throttle(_rail_ramped_speed, false);
     } else {
-      // Failsafe: Standard raw duty cycle when EKF feedback is lost
+      // Failsafe: Standard raw duty cycle when EKF speed data is unavailable
       g2.motors.set_throttle(rover.g.rail_percent * 0.01f);
     }
 
