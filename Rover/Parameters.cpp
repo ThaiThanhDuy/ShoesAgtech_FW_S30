@@ -295,131 +295,174 @@ const AP_Param::Info Rover::var_info[] = {
     // RAIL MODE //
     // @Param: RAIL_ENABLE
     // @DisplayName: Rail Mode Activation
-    // @Description: Enables or disables Rail Mode
+    // @Description: Kich hoat hoac vo hieu hoa che do chay duong nuoc Rail Mode
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
     GSCALAR(rail_enable, "RAIL_ENABLE", 0),
 
     // @Param: RAIL_SPEED
-    // @DisplayName: Rail Mode Speed
-    // @Description: Vận tốc tịnh tiến mục tiêu cho máy S16/S30 (m/s)
+    // @DisplayName: Rail Mode Target Speed
+    // @Description: Van toc tinh tien muc tieu cho thuyen tu hanh S30 mang tai
+    // (m/s)
     // @Range: 0.5 5.0
     // @Units: m/s
     // @User: Standard
     GSCALAR(rail_speed, "RAIL_SPEED", 1.2f),
 
     // @Param: RAIL_PERCENT
-    // @DisplayName: Rail Mode Throttle Percent
-    // @Description: Mức ga cố định (%) dự phòng khi mất GPS/Speed Data
+    // @DisplayName: Rail Failsafe Throttle Percent
+    // @Description: Muc ga co dinh (%) du phong an toan khi mat du lieu dinh vi
+    // EKF/GPS
     // @Range: 0 100
     // @Units: %
     // @User: Standard
-    GSCALAR(rail_percent, "RAIL_PERCENT", 40),
+    GSCALAR(rail_percent, "RAIL_SPD_PER", 40),
 
-    // @Param: RAIL_RAMPED_RATE
-    // @DisplayName: Rail Mode Acceleration Rate
-    // @Description: Độ tăng vận tốc mỗi giây (m/s^2). Giá trị càng nhỏ máy tăng
-    // tốc càng mịn.
+    // @Param: RAIL_RAMP_RATE
+    // @DisplayName: Rail Acceleration Rate
+    // @Description: Gia toc tang truong van toc (m/s^2). Gia tri nho giup min
+    // ga, chong soc tai dong co X8
     // @Range: 0.01 1.0
     // @Increment: 0.01
+    // @Units: m/s/s
     // @User: Standard
     GSCALAR(rail_ramped_rate, "RAIL_RAMP_RATE", 0.2f),
 
     // @Param: RAIL_STR_DZ
-    // @DisplayName: Rail Mode Steering Deadzone
-    // @Description: Ngưỡng lọc nhiễu cần lái (Stick) trong chế độ Rail. Giá trị
-    // dưới ngưỡng này máy sẽ khóa vi sai đi thẳng.
+    // @DisplayName: Rail Steering Deadzone
+    // @Description: Nguong loc nhieu can lai PWM. Duoi nguong nay vi sai khoa
+    // di thang tuyet doi
     // @Range: 0 500
-    // @Increment: 1
     // @Units: PWM
     // @User: Standard
     GSCALAR(rail_steer_dz, "RAIL_STR_DZ", 50),
 
     // @Param: RAIL_AUTO_STR
     // @DisplayName: Rail Auto Steer Switch
-    // @Description: Kích hoạt chế độ tự động cua. Khi bật, gạt cần qua ngưỡng
-    // DZ sẽ cua với tốc độ cố định, thả cần về giữa sẽ khóa đi thẳng.
+    // @Description: Kich hoat tu dong cua theo toc do goc dat truoc khi gat can
+    // vuot nguong chet
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
     GSCALAR(rail_auto_steer, "RAIL_AUTO_STR", 0),
 
     // @Param: RAIL_AUTO_TRATE
     // @DisplayName: Rail Auto Turn Rate
-    // @Description: Vận tốc góc mục tiêu khi thực hiện tự động cua trong chế độ
-    // Rail Auto Steer.
+    // @Description: Van toc goc quay tieu chuan khi thuc hien tu dong cua vi
+    // sai (deg/s)
     // @Range: 0 45
     // @Units: deg/s
     // @Increment: 1
     // @User: Standard
     GSCALAR(rail_auto_turn_rate, "RAIL_AUTO_TRATE", 20.0f),
+
     // @Param: RAIL_PITCH_EN
     // @DisplayName: Rail Safe Pitch Enable
-    // @Description: Kích hoạt giảm tốc độ khi góc Pitch vượt ngưỡng
+    // @Description: Kich hoat thuat toan bao ve, tu dong giam toc khi mui
+    // thuyen bi dập nhanh hoac nguy hiem
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
     GSCALAR(rail_safe_pitch_en, "RAIL_PITCH_EN", 0),
 
     // @Param: SAFE_PITCH_DN
-    // @DisplayName: Rail Safe Pitch Down (Chúi mũi)
-    // @Description: Nhập số dương (ví dụ 10). Code sẽ tự hiểu là ngưỡng chúi
-    // mũi -10 độ.
-    // @Units: deg
+    // @DisplayName: Safe Pitch Down Limit
+    // @Description: Nguong goc chui mui an toan (nhap gia tri duong, code tu
+    // dong hieu gia tri am)
     // @Range: 0 45
+    // @Units: deg
+    // @User: Standard
     GSCALAR(safe_pitch_down, "SAFE_PITCH_DN", 10.0f),
+
     // @Param: SAFE_PITCH_UP
-    // @DisplayName: Rail Safe Pitch Up (Ngửa mũi)
-    // @Description: Ngưỡng góc ngửa mũi (độ). Nếu máy ngửa quá mức này, tốc độ
-    // giảm còn 70%.
-    // @Units: deg
+    // @DisplayName: Safe Pitch Up Limit
+    // @Description: Nguong goc ngua mui an toan khi thuyen tang toc gap hoac
+    // gap song lon
     // @Range: 0 45
+    // @Units: deg
+    // @User: Standard
     GSCALAR(safe_pitch_up, "SAFE_PITCH_UP", 10.0f),
+
     // @Param: SAFE_PITCH_ACCEL
     // @DisplayName: Safe Pitch Angular Acceleration Limit
-    // @Description: Max allowed pitch angular acceleration before triggering
-    // safety speed reduction. Lower values increase sensitivity.
-    // @Units: deg/s/s
+    // @Description: Gioi han gia toc goc Pitch phuong Y sau khi loc nhieu. Gia
+    // tri thap lam tang do nhay an toan
     // @Range: 30.0 300.0
+    // @Units: deg/s/s
     // @Increment: 5.0
     // @User: Standard
-    GSCALAR(safe_pitch_accel, "SAFE_PITCH_ACCEL",
-            120.0f), // Khởi tạo biến lưu trữ với tên hiển thị trên GCS và giá
-                     // trị mặc định 120.0f
+    GSCALAR(safe_pitch_accel, "SAFE_PITCH_ACCEL", 120.0f),
 
     // @Param: RAIL_LOG_ENABLE
     // @DisplayName: Rail Log Enable
-    // @Description: Kích hoạt log thông tin Target Speed và Actual Speed lên
-    // GCS
+    // @Description: Bat/Tat ha tang truyen du lieu thong tin dong hoc kieu
+    // chuoi ve GCS tai tan so 0.5Hz
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
     GSCALAR(rail_log_enable, "RAIL_LOG_ENABLE", 0),
+
     // @Param: RAIL_SPD_LEAD
     // @DisplayName: Rail Speed Lead Threshold
-    // @Description: Khoảng cách vận tốc dẫn trước giữa Setpoint và Thực tế
-    // (m/s). Tăng lên để đề-pa bốc hơn, giảm xuống để máy chạy êm hơn.
+    // @Description: Khoang cach sai lech cho phep giua Setpoint va van toc thuc
+    // te (Anti-Windup Limit)
     // @Range: 0.1 2.0
     // @Increment: 0.1
+    // @Units: m/s
     // @User: Advanced
     GSCALAR(rail_speed_lead, "RAIL_SPD_LEAD", 0.5f),
+
     // @Param: RAIL_PITCH_DLY
     // @DisplayName: Rail Pitch Recovery Delay
-    // @Description: Thoi gian (ms) duy tri toc do thap sau khi Pitch ve nguong
-    // an toan. Giup he thong on dinh truoc khi tang toc tro lai.
+    // @Description: Thoi gian tre duy tri van toc thap sau khi thuyen thoat
+    // khoi trang thai pitch nguy hiem
     // @Range: 0 5000
     // @Units: ms
     // @Increment: 100
     // @User: Advanced
     GSCALAR(rail_pitch_delay, "RAIL_PITCH_DLY", 2000.0f),
 
-    // @Param: RAIL_PITCH_SCALE
-    // @DisplayName: Rail Pitch Speed Percentage
-    // @Description: Ty le phan tram van toc muc tieu con lai khi kich hoat
-    // Pitch Safety. 70 co nghia la giam con 70% toc do.
+    // @Param: RAIL_PITCH_SCL
+    // @DisplayName: Rail Pitch Speed Percentage Scale
+    // @Description: Ty le phan phoi van toc con lai khi kich hoat che do bao ve
+    // Pitch Safety (Vi du: 70 = 70%)
     // @Range: 10 100
     // @Units: %
     // @Increment: 5
     // @User: Advanced
     GSCALAR(rail_pitch_scale, "RAIL_PITCH_SCL", 70.0f),
+    // @Param: RAIL_DURATION
+    // @DisplayName: Rail Fixed Speed Duration
+    // @Description: Thoi gian (giay) chay vong kin on dinh de bat giu muc ga
+    // truoc khi khoa cung tiet kiem pin
+    // @Range: 0.0 3600.0
+    // @Units: s
+    // @Increment: 1.0
+    // @User: Standard
+    GSCALAR(rail_duration, "RAIL_DURATION", 10.0f),
 
+    // @Param: RAIL_THROT_RED
+    // @DisplayName: Rail Mode Throttle Reduction Rate
+    // @Description: Ti le phan tram giam ga khi he thong vao tron on dinh
+    // @Range: 0 80
+    // @Increment: 5
+    // @User: Standard
+    GSCALAR(rail_throttle_reduction, "RAIL_THROT_PER", 20),
+
+    // @Param: RAIL_SAFE_TIM
+    // @DisplayName: Rail Mode Safety Timeout
+    // @Description: Thoi gian toi da (giay) cho phep tracking speed. Neu vuot
+    // qua se ha van toc muc tieu de tranh bao hoa dong co (0 = Vo hieu hoa).
+    // @Range: 0.0 120.0
+    // @Increment: 1.0
+    // @User: Standard
+    GSCALAR(rail_safety_timeout, "RAIL_SAFE_TIM", 20.0f),
+
+    // @Param: RAIL_SPD_ERR
+    // @DisplayName: Rail Mode Speed Error Tolerance
+    // @Description: Nguong sai so van toc cho phep (m/s) de xac dinh thuyen
+    // chay on dinh va bat dau dem thoi gian khoa ga
+    // @Range: 0.0 1.0
+    // @Increment: 0.01
+    // @User: Standard
+    GSCALAR(rail_speed_error, "RAIL_SPD_ERR", 0.2f),
 // variables not in the g class which contain EEPROM saved variables
 #if AP_RELAY_ENABLED
     // @Group: RELAY

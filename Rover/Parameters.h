@@ -263,7 +263,10 @@ public:
     k_param_rail_speed_lead = 272,
     k_param_rail_pitch_delay = 273,
     k_param_rail_pitch_scale = 274,
-
+    k_param_rail_duration = 275,
+    k_param_rail_throttle_reduction = 276,
+    k_param_rail_safety_timeout = 277,
+    k_param_rail_speed_error = 278,
   };
 
   AP_Int16 format_version;
@@ -319,23 +322,26 @@ public:
   AP_Int16 bst_pitch_delay; // Thời gian trễ phục hồi (ms)
   AP_Float bst_pitch_scale; // Tỷ lệ giảm tốc (%)
 
-  // Rail mode
+  // === Tham số cấu hình hệ thống chạy đường nước (Rail Mode) ===
   AP_Int8 rail_enable;
   AP_Float rail_speed;
-  AP_Int16 rail_percent;
+  AP_Int8 rail_percent;
   AP_Float rail_ramped_rate;
   AP_Int16 rail_steer_dz;
-  AP_Int8 rail_auto_steer;      // 0: Disable, 1: Enable
-  AP_Float rail_auto_turn_rate; // Đơn vị: degrees/second
+  AP_Int8 rail_auto_steer;
+  AP_Float rail_auto_turn_rate;
   AP_Int8 rail_safe_pitch_en;
   AP_Int8 rail_log_enable;
   AP_Float rail_speed_lead;
   AP_Float rail_pitch_delay;
   AP_Float rail_pitch_scale;
-
-  // Safety pitch
-  AP_Float safe_pitch_down; // Ngưỡng chúi mũi (thường là góc âm)
-  AP_Float safe_pitch_up; // Ngưỡng ngửa mũi (thường là góc dương)
+  AP_Float rail_duration;
+  AP_Int8 rail_throttle_reduction;
+  AP_Float rail_safety_timeout;
+  AP_Float rail_speed_error;
+  // === Tham số giới hạn động học an toàn góc Pitch ===
+  AP_Float safe_pitch_down;
+  AP_Float safe_pitch_up;
   AP_Float safe_pitch_accel;
 
   Parameters() {}

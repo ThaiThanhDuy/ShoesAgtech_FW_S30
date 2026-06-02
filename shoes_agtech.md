@@ -16,7 +16,7 @@ This system integrates derivative works of the ArduPilot project. Under the stro
 - **Upstream Repository**: [https://github.com/ArduPilot/ardupilot](https://github.com/ArduPilot/ardupilot)
 
 - **Our Core Modifications (Version 2.0)**:
-    - **Modified Native Flight Modes (`mode_auto.cpp`, `mode_acro.cpp`)**: Overrode and customized the standard behavior of `ModeAuto` and `ModeAcro` within the ArduRover codebase to implement specialized steering tracking and non-linear hydrodynamic response logic.
+    - **Modified Native Flight Modes (`mode.cpp`, `mode_acro.cpp`)**: Overrode and customized the standard behavior of `ModeAuto` and `ModeAcro` within the ArduRover codebase to implement specialized steering tracking and non-linear hydrodynamic response logic.
     - **Custom Advanced Parameters**: Embedded new user-configurable parameters (`AP_Param`) into the system architecture, enabling precise runtime tuning of the newly injected control variables.
     - **Custom Proprietary Library Integration**: Introduced a dedicated custom library subsystem integrated natively into the ArduPilot compilation architecture (`libraries/`) to encapsulate high-level algorithmic processes.
     - **Sensor Data Acquisition & Persistence**: Expanded internal global structures and data allocation layers with dedicated variables to interface, process raw values from specialized external sensors, and permanently log telemetry payloads via the onboard `DataFlash` logging architecture.
