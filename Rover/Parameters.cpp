@@ -446,15 +446,6 @@ const AP_Param::Info Rover::var_info[] = {
     // @User: Standard
     GSCALAR(rail_throttle_reduction, "RAIL_THROT_PER", 20),
 
-    // @Param: RAIL_SAFE_TIM
-    // @DisplayName: Rail Mode Safety Timeout
-    // @Description: Thoi gian toi da (giay) cho phep tracking speed. Neu vuot
-    // qua se ha van toc muc tieu de tranh bao hoa dong co (0 = Vo hieu hoa).
-    // @Range: 0.0 120.0
-    // @Increment: 1.0
-    // @User: Standard
-    GSCALAR(rail_safety_timeout, "RAIL_SAFE_TIM", 20.0f),
-
     // @Param: RAIL_SPD_ERR
     // @DisplayName: Rail Mode Speed Error Tolerance
     // @Description: Nguong sai so van toc cho phep (m/s) de xac dinh thuyen

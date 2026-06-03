@@ -273,25 +273,35 @@ public:
 
 private:
   // Cấu trúc quản lý trạng thái động học hệ thống Rail Mode trên máy S30
-  struct RailState {
-    uint32_t last_update_ms{0U};
-    uint32_t last_log_ms{0U};
-    uint32_t pitch_safe_start_ms{0U};
-    uint32_t target_speed_reached_ms{0U};
-    uint32_t rail_phase1_start_ms{
-        0U}; // <--- THÊM MỚI: Mốc thời gian bắt đầu chu trình bám vận tốc
-    float last_speed{-1.0f};
-    float ramped_speed{0.0f};
-    float last_pitch_rate_deg_s{0.0f};
-    float filtered_pitch_accel_deg_s2{0.0f};
-    float captured_throttle{0.0f};
-    int8_t last_enable{-1};
-    int8_t last_armed{-1};
-    bool pitch_warning_sent{false};
-    bool duration_timeout_triggered{false};
-    bool safety_timeout_active{
-        false}; // <--- THÊM MỚI: Cờ báo hiệu trạng thái ép giảm vận tốc
-  } rail_state_;
+  struct RailModeState {
+    // --- CÁC MỐC THỜI GIAN HỆ THỐNG (SYSTEM TIMERS) ---
+    uint32_t last_update_ms = 0U;
+    uint32_t rail_phase1_start_ms = 0U;
+    uint32_t stable_start_ms = 0U;
+    uint32_t pitch_safe_start_ms = 0U;
+    uint32_t last_log_ms = 0U;
+
+    // --- CÁC BIẾN TRẠNG THÁI ĐỘNG LỰC HỌC (DYNAMIC FLOATS) ---
+    float last_speed = 0.0f;
+    float ramped_speed = 0.0f;
+    float captured_throttle = 0.0f;
+    float filtered_throttle = 0.0f;
+    float last_ema_throttle = 0.0f;
+    float filtered_pitch_accel_deg_s2 = 0.0f;
+    float last_pitch_rate_deg_s = 0.0f;
+
+    // --- CÁC CỜ GIÁM SÁT ĐIỀU KHIỂN (FLAGS & INTEGERS) ---
+    int8_t last_armed = 0;
+    int8_t last_enable = -1;
+
+    bool duration_timeout_triggered =
+        false; // Cờ chốt trạng thái khóa ga hoàn toàn
+    bool target_speed_reached =
+        false; // Cờ xác nhận đã vượt qua giai đoạn đề ba thành công
+    bool pitch_warning_sent = false;
+  };
+
+  RailModeState rail_state_;
 };
 
 class ModeAuto : public Mode {
