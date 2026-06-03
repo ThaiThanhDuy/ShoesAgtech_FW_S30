@@ -247,7 +247,8 @@
 //   }
 // }
 
-// UPDATE V5 Hệ thống tiết kiệm năng lượng, điều chỉnh theo %throttle
+// UPDATE V5 Hệ thống tiết kiệm năng lượng, điều chỉnh theo %throttle và có
+// Watchdog
 void ModeAcro::update() {
   const uint32_t now_ms = AP_HAL::millis();
   const float dt = rover.G_Dt;
