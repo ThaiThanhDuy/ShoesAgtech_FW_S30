@@ -232,24 +232,36 @@ public:
     k_param_vehicle = 257, // vehicle common block of parameters
     k_param__gcs = 258,
 
-    // Duy -- adding new param
+    // Shoes_Agtech: them k_param cho Pitch Safety / BST / Rail (S30)
     //
-    // BOOST MODE
+    // === SHARED PITCH SAFETY THRESHOLDS (dung chung cho Manual / Auto / Rail)
+    // ===
+    //
+    k_param_safe_pitch_down = 268,
+    k_param_safe_pitch_up = 269,
+    k_param_safe_pitch_accel = 270,
+
+    //
+    // === MANUAL MODE PITCH SAFETY ===
+    //
+    k_param_man_pitch_en = 279,
+    k_param_man_pitch_scale = 280,
+    k_param_man_pitch_delay = 281,
+
+    //
+    // === AUTO MODE — BST (Boost + Pitch Safety) ===
     //
     k_param_bst_enable = 188,
     k_param_bst_boot_fwd_spd = 189,
     k_param_bst_slow_dist = 191,
     k_param_bst_startboot_ms = 192,
+    k_param_bst_log_en = 196,
     k_param_bst_pitch_en = 193,
     k_param_bst_pitch_delay = 194,
     k_param_bst_pitch_scale = 195,
-    k_param_bst_log_en = 196,
-    // Pitch safety
-    k_param_safe_pitch_down = 268,
-    k_param_safe_pitch_up = 269,
-    k_param_safe_pitch_accel = 270,
+
     //
-    // RAIL MODE
+    // === ACRO MODE — RAIL (Speed Control + Pitch Safety) ===
     //
     k_param_rail_enable = 260,
     k_param_rail_speed = 261,
@@ -258,15 +270,17 @@ public:
     k_param_rail_steer_dz = 264,
     k_param_rail_auto_steer = 265,
     k_param_rail_auto_turn_rate = 266,
-    k_param_rail_safe_pitch_en = 267,
     k_param_rail_log_enable = 271,
     k_param_rail_speed_lead = 272,
-    k_param_rail_pitch_delay = 273,
-    k_param_rail_pitch_scale = 274,
     k_param_rail_duration = 275,
     k_param_rail_throttle_reduction = 276,
     k_param_rail_safety_timeout = 277,
     k_param_rail_speed_error = 278,
+    k_param_rail_safe_pitch_en = 267,
+    k_param_rail_pitch_delay = 273,
+    k_param_rail_pitch_scale = 274,
+    k_param_rail_epsilon_base = 282,
+    k_param_rail_epsilon_max = 283,
   };
 
   AP_Int16 format_version;
@@ -310,19 +324,29 @@ public:
   AP_Int8 mode5;
   AP_Int8 mode6;
 
-  // Duy - adding param
+  // Shoes_Agtech: tham so tuy bien - Pitch Safety / BST Boost / Rail Mode (S30)
 
-  // BOOTS mode
+  // === SHARED PITCH SAFETY THRESHOLDS ===
+  AP_Float safe_pitch_down;  // Gioi han goc chui mui (deg)
+  AP_Float safe_pitch_up;    // Gioi han goc ngua mui (deg)
+  AP_Float safe_pitch_accel; // Gioi han gia toc goc pitch sau LPF (deg/s^2)
+
+  // === MANUAL MODE PITCH SAFETY ===
+  AP_Int8 man_pitch_en;     // 0: Disable, 1: Enable
+  AP_Int8 man_pitch_scale;  // Ti le giam toc khi pitch nguy hiem (%)
+  AP_Int16 man_pitch_delay; // Thoi gian tre phuc hoi (ms)
+
+  // === AUTO MODE — BST (Boost + Pitch Safety) ===
+  AP_Int8 bst_enable;
   AP_Float bst_boot_fwd_spd;
   AP_Float bst_slow_dist;
   AP_Float bst_startboot_ms;
-  AP_Int8 bst_enable;
-  AP_Int8 bst_log_en;       // 0: Disable, 1: Enable
+  AP_Int8 bst_log_en;
   AP_Int8 bst_pitch_en;     // 0: Disable, 1: Enable
-  AP_Int16 bst_pitch_delay; // Thời gian trễ phục hồi (ms)
-  AP_Float bst_pitch_scale; // Tỷ lệ giảm tốc (%)
+  AP_Int16 bst_pitch_delay; // Thoi gian tre phuc hoi (ms)
+  AP_Int8 bst_pitch_scale;  // Ti le giam toc khi pitch nguy hiem (%)
 
-  // === Tham số cấu hình hệ thống chạy đường nước (Rail Mode) ===
+  // === ACRO MODE — RAIL (Speed Control + Pitch Safety) ===
   AP_Int8 rail_enable;
   AP_Float rail_speed;
   AP_Int8 rail_percent;
@@ -330,19 +354,18 @@ public:
   AP_Int16 rail_steer_dz;
   AP_Int8 rail_auto_steer;
   AP_Float rail_auto_turn_rate;
-  AP_Int8 rail_safe_pitch_en;
   AP_Int8 rail_log_enable;
   AP_Float rail_speed_lead;
-  AP_Float rail_pitch_delay;
-  AP_Float rail_pitch_scale;
   AP_Float rail_duration;
   AP_Int8 rail_throttle_reduction;
-  AP_Float rail_safety_timeout;
   AP_Float rail_speed_error;
-  // === Tham số giới hạn động học an toàn góc Pitch ===
-  AP_Float safe_pitch_down;
-  AP_Float safe_pitch_up;
-  AP_Float safe_pitch_accel;
+  AP_Int8 rail_safe_pitch_en; // 0: Disable, 1: Enable
+  AP_Int16 rail_pitch_delay;  // Thoi gian tre phuc hoi (ms)
+  AP_Int8 rail_pitch_scale;   // Ti le giam toc khi pitch nguy hiem (%)
+  AP_Float
+      rail_epsilon_base; // Bien do dao dong ga toi thieu chap nhan duoc (%/s)
+  AP_Float rail_epsilon_max; // Bien do dao dong ga toi da chap nhan duoc cuoi
+                             // profiling (%/s)
 
   Parameters() {}
 };

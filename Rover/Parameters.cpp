@@ -247,126 +247,17 @@ const AP_Param::Info Rover::var_info[] = {
     // @Path: ../libraries/AP_Baro/AP_Baro.cpp
     GOBJECT(barometer, "BARO", AP_Baro),
 
-    // Duy - adding Param
+    // Shoes_Agtech: cac GSCALAR tuy bien - Pitch Safety (Manual/BST/Rail),
+    // BST Boost va Rail Mode (S30)
 
-    // BOOST MODE //
-    // @Param: BST_ENABLE
-    // @DisplayName: Enable BST start boost
-    // @Description: Enable BST start throttle boost logic
-    GSCALAR(bst_enable, "BST_ENABLE", 0),
-
-    // @Param: BST_BOOT_SPD
-    // @DisplayName: BST Boot Forward Speed
-    // @Description: Min speed enforced in AUTO to prevent getting stuck
-    GSCALAR(bst_boot_fwd_spd, "BST_BOOT_SPD", 1.0f),
-
-    // @Param: BST_BOOT_RAD
-    // @DisplayName: BST Min-Speed Disable Distance
-    // @Description: Distance to WP where min-speed clamp is disabled
-    GSCALAR(bst_slow_dist, "BST_BOOT_RAD", 1.0f),
-
-    // @Param: BST_BOOT_MS
-    // @DisplayName: BST Time to start boost
-    // @Description: Duration of start boost at mission start
-    GSCALAR(bst_startboot_ms, "BST_BOOT_MS", 3000.0f),
-    // @Param: BST_LOG_ENABLE
-    // @DisplayName: BST Debug Log Enable
-    // @Description: Kich hoat hien thi log debug cua he thong Boost/Safety len
-    // GCS.
-    // @Values: 0:Disabled, 1:Enabled
-    // @User: Advanced
-    GSCALAR(bst_log_en, "BST_LOG_ENABLE", 1), // Mac dinh bat
-
-    // @Param: BST_PITCH_EN
-    // @DisplayName: BST Pitch Safety Enable
-    // @Description: Kich hoat che do bao ve giam toc khi Pitch vuot nguong
-    GSCALAR(bst_pitch_en, "BST_PITCH_EN", 0),
-
-    // @Param: BST_PITCH_DLY
-    // @DisplayName: BST Pitch Recovery Delay
-    // @Description: Thoi gian (ms) duy tri toc do thap sau khi Pitch on dinh
-    GSCALAR(bst_pitch_delay, "BST_PITCH_DLY", 2000),
-
-    // @Param: BST_PITCH_SCL
-    // @DisplayName: BST Pitch Speed Scale
-    // @Description: Phan tram (%) toc do giu lai khi vi pham goc Pitch
-    GSCALAR(bst_pitch_scale, "BST_PITCH_SCL", 70.0f),
-
-    // RAIL MODE //
-    // @Param: RAIL_ENABLE
-    // @DisplayName: Rail Mode Activation
-    // @Description: Kich hoat hoac vo hieu hoa che do chay duong nuoc Rail Mode
-    // @Values: 0:Disabled, 1:Enabled
-    // @User: Standard
-    GSCALAR(rail_enable, "RAIL_ENABLE", 0),
-
-    // @Param: RAIL_SPEED
-    // @DisplayName: Rail Mode Target Speed
-    // @Description: Van toc tinh tien muc tieu cho thuyen tu hanh S30 mang tai
-    // (m/s)
-    // @Range: 0.5 5.0
-    // @Units: m/s
-    // @User: Standard
-    GSCALAR(rail_speed, "RAIL_SPEED", 1.2f),
-
-    // @Param: RAIL_PERCENT
-    // @DisplayName: Rail Failsafe Throttle Percent
-    // @Description: Muc ga co dinh (%) du phong an toan khi mat du lieu dinh vi
-    // EKF/GPS
-    // @Range: 0 100
-    // @Units: %
-    // @User: Standard
-    GSCALAR(rail_percent, "RAIL_SPD_PER", 40),
-
-    // @Param: RAIL_RAMP_RATE
-    // @DisplayName: Rail Acceleration Rate
-    // @Description: Gia toc tang truong van toc (m/s^2). Gia tri nho giup min
-    // ga, chong soc tai dong co X8
-    // @Range: 0.01 1.0
-    // @Increment: 0.01
-    // @Units: m/s/s
-    // @User: Standard
-    GSCALAR(rail_ramped_rate, "RAIL_RAMP_RATE", 0.2f),
-
-    // @Param: RAIL_STR_DZ
-    // @DisplayName: Rail Steering Deadzone
-    // @Description: Nguong loc nhieu can lai PWM. Duoi nguong nay vi sai khoa
-    // di thang tuyet doi
-    // @Range: 0 500
-    // @Units: PWM
-    // @User: Standard
-    GSCALAR(rail_steer_dz, "RAIL_STR_DZ", 50),
-
-    // @Param: RAIL_AUTO_STR
-    // @DisplayName: Rail Auto Steer Switch
-    // @Description: Kich hoat tu dong cua theo toc do goc dat truoc khi gat can
-    // vuot nguong chet
-    // @Values: 0:Disabled, 1:Enabled
-    // @User: Standard
-    GSCALAR(rail_auto_steer, "RAIL_AUTO_STR", 0),
-
-    // @Param: RAIL_AUTO_TRATE
-    // @DisplayName: Rail Auto Turn Rate
-    // @Description: Van toc goc quay tieu chuan khi thuc hien tu dong cua vi
-    // sai (deg/s)
-    // @Range: 0 45
-    // @Units: deg/s
-    // @Increment: 1
-    // @User: Standard
-    GSCALAR(rail_auto_turn_rate, "RAIL_AUTO_TRATE", 20.0f),
-
-    // @Param: RAIL_PITCH_EN
-    // @DisplayName: Rail Safe Pitch Enable
-    // @Description: Kich hoat thuat toan bao ve, tu dong giam toc khi mui
-    // thuyen bi dập nhanh hoac nguy hiem
-    // @Values: 0:Disabled, 1:Enabled
-    // @User: Standard
-    GSCALAR(rail_safe_pitch_en, "RAIL_PITCH_EN", 0),
+    // =========================================================
+    // === SHARED PITCH SAFETY THRESHOLDS
+    // ===   Dung chung cho Manual / Auto(BST) / Acro(Rail)
+    // =========================================================
 
     // @Param: SAFE_PITCH_DN
     // @DisplayName: Safe Pitch Down Limit
-    // @Description: Nguong goc chui mui an toan (nhap gia tri duong, code tu
-    // dong hieu gia tri am)
+    // @Description: Nguong goc chui mui an toan (nhap gia tri duong)
     // @Range: 0 45
     // @Units: deg
     // @User: Standard
@@ -374,8 +265,7 @@ const AP_Param::Info Rover::var_info[] = {
 
     // @Param: SAFE_PITCH_UP
     // @DisplayName: Safe Pitch Up Limit
-    // @Description: Nguong goc ngua mui an toan khi thuyen tang toc gap hoac
-    // gap song lon
+    // @Description: Nguong goc ngua mui an toan
     // @Range: 0 45
     // @Units: deg
     // @User: Standard
@@ -383,77 +273,260 @@ const AP_Param::Info Rover::var_info[] = {
 
     // @Param: SAFE_PITCH_ACCEL
     // @DisplayName: Safe Pitch Angular Acceleration Limit
-    // @Description: Gioi han gia toc goc Pitch phuong Y sau khi loc nhieu. Gia
-    // tri thap lam tang do nhay an toan
+    // @Description: Gioi han gia toc goc Pitch sau khi loc nhieu LPF ~4Hz
     // @Range: 30.0 300.0
     // @Units: deg/s/s
     // @Increment: 5.0
     // @User: Standard
     GSCALAR(safe_pitch_accel, "SAFE_PITCH_ACCEL", 120.0f),
 
-    // @Param: RAIL_LOG_ENABLE
-    // @DisplayName: Rail Log Enable
-    // @Description: Bat/Tat ha tang truyen du lieu thong tin dong hoc kieu
-    // chuoi ve GCS tai tan so 0.5Hz
+    // =========================================================
+    // === MANUAL MODE — PITCH SAFETY
+    // =========================================================
+
+    // @Param: MAN_PITCH_EN
+    // @DisplayName: Manual Pitch Safety Enable
+    // @Description: Kich hoat giam toc khi Pitch vuot nguong trong Manual Mode
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
+    GSCALAR(man_pitch_en, "MAN_PITCH_EN", 1),
+
+    // @Param: MAN_PITCH_SCL
+    // @DisplayName: Manual Pitch Throttle Scale
+    // @Description: Ti le (%) ga con lai khi vi pham Pitch trong Manual Mode
+    // @Range: 10 100
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(man_pitch_scale, "MAN_PITCH_SCL", 50),
+
+    // @Param: MAN_PITCH_DLY
+    // @DisplayName: Manual Pitch Recovery Delay
+    // @Description: Thoi gian tre (ms) duy tri giam ga sau khi Pitch on dinh
+    // tro lai trong Manual Mode
+    // @Range: 0 5000
+    // @Units: ms
+    // @User: Advanced
+    GSCALAR(man_pitch_delay, "MAN_PITCH_DLY", 2000),
+
+    // =========================================================
+    // === AUTO MODE — BST (Boost + Pitch Safety)
+    // =========================================================
+
+    // @Param: BST_ENABLE
+    // @DisplayName: BST Enable
+    // @Description: Kich hoat logic tang toc khoi hanh va giu toc do toi thieu
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(bst_enable, "BST_ENABLE", 0),
+
+    // @Param: BST_BOOT_SPD
+    // @DisplayName: BST Boot Forward Speed
+    // @Description: Toc do toi thieu ep buoc trong AUTO khi khoi hanh (m/s)
+    // @Range: 0.1 3.0
+    // @Units: m/s
+    // @User: Standard
+    GSCALAR(bst_boot_fwd_spd, "BST_BOOT_SPD", 1.0f),
+
+    // @Param: BST_BOOT_RAD
+    // @DisplayName: BST Min-Speed Disable Distance
+    // @Description: Khoang cach toi WP de tat clamp toc do toi thieu (m)
+    // @Range: 0.5 5.0
+    // @Units: m
+    // @User: Standard
+    GSCALAR(bst_slow_dist, "BST_BOOT_RAD", 1.0f),
+
+    // @Param: BST_BOOT_MS
+    // @DisplayName: BST Boot Duration
+    // @Description: Thoi gian cua so tang toc khoi hanh khi bat dau mission
+    // (ms)
+    // @Range: 500 10000
+    // @Units: ms
+    // @User: Standard
+    GSCALAR(bst_startboot_ms, "BST_BOOT_MS", 3000.0f),
+
+    // @Param: BST_LOG_ENABLE
+    // @DisplayName: BST Log Enable
+    // @Description: Kich hoat hien thi log debug BST/Safety len GCS (1Hz)
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Advanced
+    GSCALAR(bst_log_en, "BST_LOG_ENABLE", 1),
+
+    // @Param: BST_PITCH_EN
+    // @DisplayName: BST Pitch Safety Enable
+    // @Description: Kich hoat giam toc khi Pitch vuot nguong trong Auto Mode
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(bst_pitch_en, "BST_PITCH_EN", 1),
+
+    // @Param: BST_PITCH_DLY
+    // @DisplayName: BST Pitch Recovery Delay
+    // @Description: Thoi gian tre (ms) duy tri toc do thap sau khi Pitch on
+    // dinh
+    // @Range: 0 5000
+    // @Units: ms
+    // @User: Advanced
+    GSCALAR(bst_pitch_delay, "BST_PITCH_DLY", 2000),
+
+    // @Param: BST_PITCH_SCL
+    // @DisplayName: BST Pitch Speed Scale
+    // @Description: Ti le (%) toc do con lai khi vi pham Pitch trong
+    // Auto/Manual
+    // @Range: 10 100
+    // @Units: %
+    // @User: Advanced
+    GSCALAR(bst_pitch_scale, "BST_PITCH_SCL", 50),
+
+    // =========================================================
+    // === ACRO MODE — RAIL (Speed Control + Pitch Safety)
+    // =========================================================
+
+    // @Param: RAIL_ENABLE
+    // @DisplayName: Rail Mode Enable
+    // @Description: Kich hoat che do chay duong nuoc Rail Mode trong Acro
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(rail_enable, "RAIL_ENABLE", 0),
+
+    // @Param: RAIL_SPEED
+    // @DisplayName: Rail Target Speed
+    // @Description: Van toc tinh tien muc tieu (m/s)
+    // @Range: 0.5 5.0
+    // @Units: m/s
+    // @User: Standard
+    GSCALAR(rail_speed, "RAIL_SPEED", 1.2f),
+
+    // @Param: RAIL_SPD_PER
+    // @DisplayName: Rail Throttle Reduction Percent
+    // @Description: Phan tram ga giu lai sau khi khoa on dinh (%)
+    // @Range: 10 90
+    // @Units: %
+    // @User: Standard
+    GSCALAR(rail_percent, "RAIL_SPD_PER", 40),
+
+    // @Param: RAIL_RAMP_RATE
+    // @DisplayName: Rail Acceleration Rate
+    // @Description: Toc do tang truong van toc (m/s^2), chong soc dong co X8
+    // @Range: 0.01 1.0
+    // @Units: m/s/s
+    // @Increment: 0.01
+    // @User: Standard
+    GSCALAR(rail_ramped_rate, "RAIL_RAMP_RATE", 0.2f),
+
+    // @Param: RAIL_STR_DZ
+    // @DisplayName: Rail Steering Deadzone
+    // @Description: Nguong loc nhieu can lai (PWM). Duoi nguong nay di thang
+    // @Range: 0 500
+    // @Units: PWM
+    // @User: Standard
+    GSCALAR(rail_steer_dz, "RAIL_STR_DZ", 50),
+
+    // @Param: RAIL_AUTO_STR
+    // @DisplayName: Rail Auto Steer Enable
+    // @Description: Kich hoat tu dong cua vi sai theo toc do goc dat truoc
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(rail_auto_steer, "RAIL_AUTO_STR", 0),
+
+    // @Param: RAIL_AUTO_TRATE
+    // @DisplayName: Rail Auto Turn Rate
+    // @Description: Toc do goc quay khi tu dong cua vi sai (deg/s)
+    // @Range: 0 45
+    // @Units: deg/s
+    // @Increment: 1
+    // @User: Standard
+    GSCALAR(rail_auto_turn_rate, "RAIL_AUTO_TRATE", 20.0f),
+
+    // @Param: RAIL_LOG_ENABLE
+    // @DisplayName: Rail Log Enable
+    // @Description: Kich hoat truyen log dong hoc Rail ve GCS (0.5Hz)
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Advanced
     GSCALAR(rail_log_enable, "RAIL_LOG_ENABLE", 0),
 
     // @Param: RAIL_SPD_LEAD
-    // @DisplayName: Rail Speed Lead Threshold
-    // @Description: Khoang cach sai lech cho phep giua Setpoint va van toc thuc
-    // te (Anti-Windup Limit)
+    // @DisplayName: Rail Speed Lead (Anti-Windup)
+    // @Description: Bien do cho phep giua Setpoint va van toc thuc (m/s)
     // @Range: 0.1 2.0
-    // @Increment: 0.1
     // @Units: m/s
+    // @Increment: 0.1
     // @User: Advanced
     GSCALAR(rail_speed_lead, "RAIL_SPD_LEAD", 0.5f),
 
-    // @Param: RAIL_PITCH_DLY
-    // @DisplayName: Rail Pitch Recovery Delay
-    // @Description: Thoi gian tre duy tri van toc thap sau khi thuyen thoat
-    // khoi trang thai pitch nguy hiem
-    // @Range: 0 5000
-    // @Units: ms
-    // @Increment: 100
-    // @User: Advanced
-    GSCALAR(rail_pitch_delay, "RAIL_PITCH_DLY", 2000.0f),
-
-    // @Param: RAIL_PITCH_SCL
-    // @DisplayName: Rail Pitch Speed Percentage Scale
-    // @Description: Ty le phan phoi van toc con lai khi kich hoat che do bao ve
-    // Pitch Safety (Vi du: 70 = 70%)
-    // @Range: 10 100
-    // @Units: %
-    // @Increment: 5
-    // @User: Advanced
-    GSCALAR(rail_pitch_scale, "RAIL_PITCH_SCL", 70.0f),
     // @Param: RAIL_DURATION
-    // @DisplayName: Rail Fixed Speed Duration
-    // @Description: Thoi gian (giay) chay vong kin on dinh de bat giu muc ga
-    // truoc khi khoa cung tiet kiem pin
+    // @DisplayName: Rail Stable Duration
+    // @Description: Thoi gian (s) PID on dinh truoc khi khoa ga tiet kiem pin
     // @Range: 0.0 3600.0
     // @Units: s
     // @Increment: 1.0
     // @User: Standard
     GSCALAR(rail_duration, "RAIL_DURATION", 10.0f),
 
-    // @Param: RAIL_THROT_RED
-    // @DisplayName: Rail Mode Throttle Reduction Rate
-    // @Description: Ti le phan tram giam ga khi he thong vao tron on dinh
+    // @Param: RAIL_THROT_PER
+    // @DisplayName: Rail Throttle Reduction After Latch
+    // @Description: Ti le giam ga (%) sau khi he thong vao trang thai on dinh
     // @Range: 0 80
     // @Increment: 5
     // @User: Standard
     GSCALAR(rail_throttle_reduction, "RAIL_THROT_PER", 20),
 
     // @Param: RAIL_SPD_ERR
-    // @DisplayName: Rail Mode Speed Error Tolerance
-    // @Description: Nguong sai so van toc cho phep (m/s) de xac dinh thuyen
-    // chay on dinh va bat dau dem thoi gian khoa ga
+    // @DisplayName: Rail Speed Error Tolerance
+    // @Description: Nguong sai so van toc cho phep de xac dinh trang thai on
+    // dinh
     // @Range: 0.0 1.0
+    // @Units: m/s
     // @Increment: 0.01
     // @User: Standard
     GSCALAR(rail_speed_error, "RAIL_SPD_ERR", 0.2f),
+
+    // @Param: RAIL_PITCH_EN
+    // @DisplayName: Rail Pitch Safety Enable
+    // @Description: Kich hoat giam toc khi Pitch vuot nguong trong Acro/Rail
+    // Mode
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(rail_safe_pitch_en, "RAIL_PITCH_EN", 1),
+
+    // @Param: RAIL_PITCH_DLY
+    // @DisplayName: Rail Pitch Recovery Delay
+    // @Description: Thoi gian tre (ms) duy tri toc do thap sau khi Pitch on
+    // dinh
+    // @Range: 0 5000
+    // @Units: ms
+    // @Increment: 100
+    // @User: Advanced
+    GSCALAR(rail_pitch_delay, "RAIL_PITCH_DLY", 2000),
+
+    // @Param: RAIL_PITCH_SCL
+    // @DisplayName: Rail Pitch Speed Scale
+    // @Description: Ti le (%) toc do con lai khi vi pham Pitch trong Rail Mode
+    // @Range: 10 100
+    // @Units: %
+    // @Increment: 5
+    // @User: Advanced
+    GSCALAR(rail_pitch_scale, "RAIL_PITCH_SCL", 50),
+
+    // @Param: RAIL_EPS_BASE
+    // @DisplayName: Rail Convergence Epsilon Base
+    // @Description: Nguong dao dong toi thieu (dao ham EMA ga, %/s) de coi la
+    // da hoi tu o dau giai doan Profiling - thap hon se cho Latch som hon nhung
+    // de bi nham
+    // @Range: 0.1 5.0
+    // @Units: %/s
+    // @Increment: 0.1
+    // @User: Advanced
+    GSCALAR(rail_epsilon_base, "RAIL_EPS_BASE", 0.4f),
+
+    // @Param: RAIL_EPS_MAX
+    // @DisplayName: Rail Convergence Epsilon Max
+    // @Description: Nguong dao dong toi da (dao ham EMA ga, %/s) chap nhan duoc
+    // khi gan het thoi gian Profiling - cao hon se de Latch hon tren dia hinh
+    // nhieu
+    // @Range: 0.5 10.0
+    // @Units: %/s
+    // @Increment: 0.1
+    // @User: Advanced
+    GSCALAR(rail_epsilon_max, "RAIL_EPS_MAX", 2.5f),
 // variables not in the g class which contain EEPROM saved variables
 #if AP_RELAY_ENABLED
     // @Group: RELAY

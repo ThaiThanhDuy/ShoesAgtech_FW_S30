@@ -1,5 +1,15 @@
 #include "Rover.h"
 
+// Shoes_Agtech: khoi tao/giai phong trang thai Pitch Safety khi vao/thoat
+// Manual
+bool ModeManual::_enter() {
+  _last_pitch_rate_rads = rover.ahrs.get_gyro().y;
+  _filtered_pitch_accel_degs2 = 0.0f;
+  _pitch_warning_sent = false;
+  _pitch_safe_start_ms = 0U;
+  return true;
+}
+
 void ModeManual::_exit() {
   // clear lateral when exiting manual mode
   g2.motors.set_lateral(0);
@@ -10,87 +20,71 @@ void ModeManual::update() {
   get_pilot_desired_steering_and_throttle(desired_steering, desired_throttle);
   get_pilot_desired_lateral(desired_lateral);
 
-  // // --- Pitch Safety Warning Logic START ---
-  // const float pitch_deg = degrees(rover.ahrs.get_pitch());
+  // --- Shoes_Agtech: Pitch Safety (Manual) - bat/tat qua MAN_PITCH_EN ---
+  if (rover.g.man_pitch_en.get() == 1) {
+    const uint32_t now_ms = AP_HAL::millis();
+    const float pitch_deg = degrees(rover.ahrs.get_pitch());
+    const float current_pitch_rate_rads = rover.ahrs.get_gyro().y;
 
-  // // Kiểm tra trạng thái góc Pitch dựa trên tham số cấu hình hệ thống
-  // // g.safe_pitch_down: Ngưỡng chúi mũi | g.safe_pitch_up: Ngưỡng ngóc mũi
-  // const bool is_pitch_bad = (pitch_deg < -fabsf(g.safe_pitch_down.get()) ||
-  //                            pitch_deg > fabsf(g.safe_pitch_up.get()));
-
-  // if (is_pitch_bad) {
-  //   const uint32_t now_ms = AP_HAL::millis();
-  //   static uint32_t last_warn_ms = 0;
-  //   desired_throttle = 0.0f;
-  //   if (now_ms - last_warn_ms > 1000) { // Tần suất cảnh báo 1Hz
-  //     gcs().send_text(MAV_SEVERITY_CRITICAL,
-  //                     "PITCH DANGER: %.2f deg | THROTTLE LOCKED",
-  //                     (double)pitch_deg);
-  //     last_warn_ms = now_ms;
-  //   }
-  // }
-  // // --- Pitch Safety Warning Logic END ---
-  // Duy Update - Thêm vào tính toán gia tốc
-  // --- Pitch Safety Warning Logic START (Angle & Acceleration Predictive
-  // Control) --- Khởi tạo các biến thời gian thực của hệ thống
-  const uint32_t now_ms = AP_HAL::millis();
-  static uint32_t last_warn_ms = 0U;
-
-  // 1. Trích xuất dữ liệu độ nghiêng tĩnh và vận tốc góc trục Y (Pitch rate) từ
-  // IMU
-  const float pitch_deg = degrees(rover.ahrs.get_pitch());
-  const Vector3f &gyro = rover.ahrs.get_gyro();
-  const float current_pitch_rate_rads = gyro.y;
-
-  // 2. Tính toán gia tốc góc Pitch thô (Raw Angular Acceleration) bằng sai phân
-  // hữu hạn
-  float raw_pitch_accel_degs2 = 0.0f;
-  if (rover.G_Dt >
-      0.0001f) { // Ngăn chặn triệt để lỗi chia cho 0 (Undefined Behavior)
-    raw_pitch_accel_degs2 =
-        degrees(current_pitch_rate_rads - _manual_last_pitch_rate_rads) /
-        rover.G_Dt;
-  }
-  _manual_last_pitch_rate_rads =
-      current_pitch_rate_rads; // Lưu cấu trúc cho chu kỳ kế tiếp
-
-  // 3. Áp dụng bộ lọc thông thấp (Low-Pass Filter) tần số cắt ~4Hz để triệt
-  // nhiễu rung động cơ Hobbywing X8/X6 Hằng số thời gian RC = 1/(2*pi*f_cut) =
-  // 0.04s. Hệ số alpha = dt / (RC + dt)
-  const float lpf_alpha =
-      constrain_float(rover.G_Dt / (0.04f + rover.G_Dt), 0.05f, 1.0f);
-  _manual_filtered_pitch_accel_degs2 =
-      (lpf_alpha * raw_pitch_accel_degs2) +
-      ((1.0f - lpf_alpha) * _manual_filtered_pitch_accel_degs2);
-
-  // 4. Khởi tạo ngưỡng động học từ hệ thống tham số toàn cục của Rover
-  // (GSCALAR)
-  const float safe_pitch_down_limit = -fabsf(g.safe_pitch_down.get());
-  const float safe_pitch_up_limit = fabsf(g.safe_pitch_up.get());
-  const float safe_pitch_accel_limit = fabsf(rover.g.safe_pitch_accel.get());
-
-  // 5. Kiểm tra trạng thái: Vi phạm góc tĩnh HOẶC Vi phạm xung quán tính động
-  // lực học
-  const bool is_angle_bad =
-      (pitch_deg < safe_pitch_down_limit) || (pitch_deg > safe_pitch_up_limit);
-  const bool is_inertia_bad =
-      (fabsf(_manual_filtered_pitch_accel_degs2) > safe_pitch_accel_limit);
-  const bool is_pitch_bad = is_angle_bad || is_inertia_bad;
-
-  if (is_pitch_bad) {
-    desired_throttle =
-        0.0f; // Khóa cứng đầu ra công suất, triệt tiêu xung ESC lập tức
-
-    if (now_ms - last_warn_ms > 1000U) { // Tần suất cảnh báo chuẩn hóa 1Hz
-      gcs().send_text(
-          MAV_SEVERITY_CRITICAL,
-          "PITCH DANGER! Ang:%.1fdeg Acc:%.1fdeg/s2 | THROTTLE LOCKED",
-          static_cast<double>(pitch_deg),
-          static_cast<double>(_manual_filtered_pitch_accel_degs2));
-      last_warn_ms = now_ms;
+    float raw_pitch_accel_degs2 = 0.0f;
+    if (rover.G_Dt > 0.0001f) {
+      raw_pitch_accel_degs2 =
+          degrees(current_pitch_rate_rads - _last_pitch_rate_rads) / rover.G_Dt;
     }
+    _last_pitch_rate_rads = current_pitch_rate_rads;
+
+    const float lpf_alpha =
+        constrain_float(rover.G_Dt / (0.04f + rover.G_Dt), 0.05f, 1.0f);
+    _filtered_pitch_accel_degs2 =
+        (lpf_alpha * raw_pitch_accel_degs2) +
+        ((1.0f - lpf_alpha) * _filtered_pitch_accel_degs2);
+
+    const float safe_pitch_down_limit = -fabsf(g.safe_pitch_down.get());
+    const float safe_pitch_up_limit = fabsf(g.safe_pitch_up.get());
+    const float safe_pitch_accel_limit = fabsf(rover.g.safe_pitch_accel.get());
+
+    const bool is_angle_bad = (pitch_deg < safe_pitch_down_limit) ||
+                              (pitch_deg > safe_pitch_up_limit);
+    const bool is_inertia_bad =
+        (fabsf(_filtered_pitch_accel_degs2) > safe_pitch_accel_limit);
+    const bool is_pitch_bad = is_angle_bad || is_inertia_bad;
+
+    const float pitch_scale =
+        constrain_float(rover.g.man_pitch_scale.get() * 0.01f, 0.0f, 1.0f);
+
+    if (is_pitch_bad) {
+      desired_throttle *= pitch_scale;
+      _pitch_safe_start_ms = 0U;
+      if (!_pitch_warning_sent) {
+        gcs().send_text(
+            MAV_SEVERITY_CRITICAL,
+            "[MAN] PITCH DANGER! Ang:%.1fdeg Acc:%.1fdeg/s2 -> x%.0f%%",
+            static_cast<double>(pitch_deg),
+            static_cast<double>(_filtered_pitch_accel_degs2),
+            static_cast<double>(rover.g.man_pitch_scale.get()));
+        _pitch_warning_sent = true;
+      }
+    } else if (_pitch_warning_sent) {
+      if (_pitch_safe_start_ms == 0U) {
+        _pitch_safe_start_ms = now_ms;
+      }
+      const uint32_t recovery_delay_ms =
+          static_cast<uint32_t>(MAX(rover.g.man_pitch_delay.get(), 0));
+      if (now_ms - _pitch_safe_start_ms >= recovery_delay_ms) {
+        gcs().send_text(MAV_SEVERITY_WARNING, "[MAN] Pitch Safe - Resuming");
+        _pitch_warning_sent = false;
+        _pitch_safe_start_ms = 0U;
+      } else {
+        desired_throttle *= pitch_scale;
+      }
+    }
+  } else {
+    _last_pitch_rate_rads = 0.0f;
+    _filtered_pitch_accel_degs2 = 0.0f;
+    _pitch_warning_sent = false;
+    _pitch_safe_start_ms = 0U;
   }
-  // --- Pitch Safety Warning Logic END ---
+  // --- Pitch Safety END ---
   // apply manual steering expo
   desired_steering =
       4500.0f * input_expo(desired_steering / 4500.0f, g2.manual_steering_expo);

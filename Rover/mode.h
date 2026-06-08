@@ -243,13 +243,12 @@ protected:
   float _desired_yaw_cd; // desired yaw in centi-degrees.  used in Auto, Guided
                          // and Loiter
 
-  // Duy adding
+  // Shoes_Agtech: trang thai Pitch Safety - dung chung Manual & Auto/BST
   uint32_t _pitch_safe_start_ms{0U};
   bool _pitch_warning_sent{false};
-  // Khởi tạo các biến phục vụ tính toán Gia tốc góc và Bộ lọc thông thấp
-  // (Low-Pass Filter)
-  float _last_pitch_rate_rads{0.0f}; // Vận tốc góc Pitch chu kỳ trước (q[k-1])
-  float _filtered_pitch_accel_degs2{0.0f}; // Gia tốc góc Pitch đã lọc (deg/s^2)
+  float _last_pitch_rate_rads{0.0f}; // Van toc goc Pitch chu ky truoc (q[k-1])
+  float _filtered_pitch_accel_degs2{
+      0.0f}; // Gia toc goc Pitch da loc LPF (deg/s^2)
 };
 
 class ModeAcro : public Mode {
@@ -271,8 +270,11 @@ public:
   // transmitter
   void handle_tack_request() override;
 
+protected:
+  bool _enter() override;
+
 private:
-  // Cấu trúc quản lý trạng thái động học hệ thống Rail Mode trên máy S30
+  // Shoes_Agtech: trang thai dong hoc cua Rail Mode (S30)
   struct RailModeState {
     // --- CÁC MỐC THỜI GIAN HỆ THỐNG (SYSTEM TIMERS) ---
     uint32_t last_update_ms = 0U;
@@ -280,6 +282,7 @@ private:
     uint32_t stable_start_ms = 0U;
     uint32_t pitch_safe_start_ms = 0U;
     uint32_t last_log_ms = 0U;
+    uint32_t last_breakout_ms = 0U;
 
     // --- CÁC BIẾN TRẠNG THÁI ĐỘNG LỰC HỌC (DYNAMIC FLOATS) ---
     float last_speed = 0.0f;
@@ -289,6 +292,10 @@ private:
     float last_ema_throttle = 0.0f;
     float filtered_pitch_accel_deg_s2 = 0.0f;
     float last_pitch_rate_deg_s = 0.0f;
+
+    // --- THEO DOI BIEN DONG GA (THROTTLE SPREAD) GIUA 2 LAN LOG ---
+    float throt_window_min = 0.0f;
+    float throt_window_max = 0.0f;
 
     // --- CÁC CỜ GIÁM SÁT ĐIỀU KHIỂN (FLAGS & INTEGERS) ---
     int8_t last_armed = 0;
@@ -775,11 +782,8 @@ public:
   bool requires_velocity() const override { return false; }
 
 protected:
+  bool _enter() override;
   void _exit() override;
-  float _manual_last_pitch_rate_rads{
-      0.0f}; // Vận tốc góc Pitch chu kỳ trước (q[k-1])
-  float _manual_filtered_pitch_accel_degs2{
-      0.0f}; // Gia tốc góc Pitch đã lọc qua LPF
 };
 
 class ModeRTL : public Mode {

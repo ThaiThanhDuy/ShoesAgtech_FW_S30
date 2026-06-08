@@ -437,66 +437,8 @@ float Mode::calc_speed_nudge(float target_speed, bool reversed) {
   }
 }
 
-// high level call to navigate to waypoint
-// uses wp_nav to calculate turn rate and speed to drive along the path from
-// origin to destination this function updates _distance_to_destination
-// void Mode::navigate_to_waypoint() {
-//   // apply speed nudge from pilot
-//   // calc_speed_nudge's "desired_speed" argument should be negative
-//   whenvehicle
-//   // is reversing AR_WPNav nudge_speed_max argu,ent should always be
-//   // positive even when reversing
-//   const float calc_nudge_input_speed =
-//       g2.wp_nav.get_speed_max() * (g2.wp_nav.get_reversed() ? -1.0 : 1.0);
-//   const float nudge_speed_max =
-//       calc_speed_nudge(calc_nudge_input_speed, g2.wp_nav.get_reversed());
-//   g2.wp_nav.set_nudge_speed_max(fabsf(nudge_speed_max));
-
-//   // update navigation controller
-//   g2.wp_nav.update(rover.G_Dt);
-//   _distance_to_destination = g2.wp_nav.get_distance_to_destination();
-
-// #if AP_AVOIDANCE_ENABLED
-//   // sailboats trigger tack if simple avoidance becomes active
-//   if (g2.sailboat.tack_enabled() && g2.avoid.limits_active()) {
-//     // we are a sailboat trying to avoid fence, try a tack
-//     rover.control_mode->handle_tack_request();
-//   }
-// #endif
-
-//   // pass desired speed to throttle controller
-//   // do not do simple avoidance because this is already handled in the
-//   position
-//   // controller
-//   calc_throttle(g2.wp_nav.get_speed(), false);
-
-//   float desired_heading_cd = g2.wp_nav.oa_wp_bearing_cd();
-//   if (g2.sailboat.use_indirect_route(desired_heading_cd)) {
-//     // sailboats use heading controller when tacking upwind
-//     desired_heading_cd = g2.sailboat.calc_heading(desired_heading_cd);
-//     // use pivot turn rate for tacks
-//     const float turn_rate =
-//         g2.sailboat.tacking() ? g2.wp_nav.get_pivot_rate() : 0.0f;
-//     calc_steering_to_heading(desired_heading_cd, turn_rate);
-//   } else {
-//     // retrieve turn rate from waypoint controller
-//     float desired_turn_rate_rads = g2.wp_nav.get_turn_rate_rads();
-
-//     // if simple avoidance is active at very low speed do not attempt to turn
-// #if AP_AVOIDANCE_ENABLED
-//     if (g2.avoid.limits_active() &&
-//         (fabsf(attitude_control.get_desired_speed()) <=
-//          attitude_control.get_stop_speed())) {
-//       desired_turn_rate_rads = 0.0f;
-//     }
-// #endif
-
-//     // call turn rate steering controller
-//     calc_steering_from_turn_rate(desired_turn_rate_rads);
-//   }
-// }
-
-// DUY - update func navigate_to_waypoint using for S30
+// Shoes_Agtech: navigate_to_waypoint - them BST Boost trigger + Pitch Safety (S30)
+// (thay the ban goc cua ArduPilot - giu nguyen vai tro tinh turn rate/speed cho wp_nav)
 void Mode::navigate_to_waypoint() {
   // Apply speed nudge from pilot
   const float calc_nudge_input_speed =
@@ -530,39 +472,52 @@ void Mode::navigate_to_waypoint() {
     desired_speed = 0.0f;
   }
 
-  // 2. BOOST LOGIC (CONDITIONAL PROCESS)
+  // 2. Shoes_Agtech BOOST (BST): kich hoat khi bat dau mission / sang waypoint moi
   bool apply_minspeed = false;
   uint32_t rem_ms = 0U;
 
   if (bst_enabled) {
     static uint32_t boost_start_ms = 0U;
-    static bool bst_active_flag = false;
     static uint16_t last_nav_idx_memory = 0;
+    static bool was_active = false; // dang chay Auto+Armed o chu ky truoc?
     uint16_t current_nav_idx = 0;
 
 #if AP_MISSION_ENABLED
     current_nav_idx = rover.mode_auto.mission.get_current_nav_index();
 #endif
 
-    // Reset Logic
-    if (is_auto && is_armed && (current_nav_idx < last_nav_idx_memory)) {
-      bst_active_flag = false;
-      boost_start_ms = 0U;
-      GCS_SEND_TEXT(MAV_SEVERITY_INFO, "[BST] Reset: Mission Restart");
-    }
+    const bool is_active = is_auto && is_armed;
 
-    if (!is_auto || !is_armed) {
-      bst_active_flag = false;
+    if (!is_active) {
       boost_start_ms = 0U;
-    } else if (!bst_active_flag &&
-               (current_nav_idx > 0 && current_nav_idx <= 2)) {
-      if (rover.g.bst_startboot_ms.get() > 0.0f) {
-        boost_start_ms = now_ms;
-        bst_active_flag = true;
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "[BST] Start-boost ACTIVE");
+      was_active = false;
+      last_nav_idx_memory = current_nav_idx;
+    } else {
+      bool trigger_boost = false;
+      const char *trigger_reason = "";
+
+      if (!was_active) {
+        // Vua dung lai roi bat dau mot nhiem vu moi (chuyen sang Auto+Armed)
+        trigger_boost = true;
+        trigger_reason = "Mission Start";
+      } else if (current_nav_idx != last_nav_idx_memory) {
+        // Sang waypoint khac (tien toi WP ke tiep vd W3->W4, hoac lui lai do
+        // mission restart) -> kich hoat lai Boost ngay khi huong toi WP moi
+        trigger_boost = true;
+        trigger_reason = (current_nav_idx < last_nav_idx_memory)
+                             ? "Mission Restart"
+                             : "Next WP";
       }
+
+      if (trigger_boost && rover.g.bst_startboot_ms.get() > 0.0f) {
+        boost_start_ms = now_ms;
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "[BST] Boost ACTIVE (%s) wp#%u",
+                      trigger_reason, static_cast<unsigned>(current_nav_idx));
+      }
+
+      was_active = true;
+      last_nav_idx_memory = current_nav_idx;
     }
-    last_nav_idx_memory = current_nav_idx;
 
     const float MIN_FWD_SPEED = MAX(0.0f, rover.g.bst_boot_fwd_spd.get());
     const float STARTBOOST_MS = MAX(0.0f, rover.g.bst_startboot_ms.get());
@@ -571,10 +526,11 @@ void Mode::navigate_to_waypoint() {
         ((now_ms - boost_start_ms) < static_cast<uint32_t>(STARTBOOST_MS));
     const float dist_m = _distance_to_destination;
 
+    // desired_speed >= 0: AUTO da clamp am ve 0 nen cho phep BST override ca pivot (speed=0)
     apply_minspeed =
         is_auto && (MIN_FWD_SPEED > 0.01f) &&
         (is_in_boost_window || (dist_m <= rover.g.bst_slow_dist.get())) &&
-        (desired_speed > 0.01f);
+        (desired_speed >= 0.0f);
 
     if (apply_minspeed) {
       desired_speed = MAX(desired_speed, MIN_FWD_SPEED);
@@ -585,66 +541,7 @@ void Mode::navigate_to_waypoint() {
                                   : 0U;
   }
 
-  // 3. PITCH SAFETY LOGIC (GLOBAL PROCESS - SPEED SATURATION LIMIT 0% - 100%)
-  // if (rover.g.bst_pitch_en.get() == 1) {
-  //   // Reset state if not in autonomous flight
-  //   if (!is_auto || !is_armed) {
-  //     _pitch_warning_sent = false;
-  //     _pitch_safe_start_ms = 0U;
-  //   } else {
-  //     const float pitch_deg = degrees(rover.ahrs.get_pitch());
-  //     const float safe_pitch_down_limit = -fabsf(g.safe_pitch_down.get());
-  //     const float safe_pitch_up_limit = fabsf(g.safe_pitch_up.get());
-  //     const bool is_pitch_bad = (pitch_deg < safe_pitch_down_limit) ||
-  //                               (pitch_deg > safe_pitch_up_limit);
-
-  //     // Cấu hình dải scale rộng từ 0.0f (0%) đến 1.0f (100%)
-  //     const float pitch_scale_param = rover.g.bst_pitch_scale.get() * 0.01f;
-  //     const float pitch_scale = constrain_float(pitch_scale_param,
-  //     0.0f, 1.0f);
-
-  //     if (is_pitch_bad) {
-  //       // Áp trần giới hạn tốc độ dựa trên wp_speed_max để không triệt tiêu
-  //       vận
-  //       // tốc khởi hành
-  //       const float max_allowed_speed = wp_speed_max * pitch_scale;
-  //       if (desired_speed > max_allowed_speed) {
-  //         desired_speed = max_allowed_speed;
-  //       }
-  //       _pitch_safe_start_ms = 0U; // Reset timer phục hồi khi còn vi phạm
-
-  //       if (!_pitch_warning_sent) {
-  //         gcs().send_text(
-  //             MAV_SEVERITY_CRITICAL,
-  //             "[BST] PITCH DANGER: %.2f deg (LIMIT SPEED TO %.2f m/s)",
-  //             static_cast<double>(pitch_deg),
-  //             static_cast<double>(max_allowed_speed));
-  //         _pitch_warning_sent = true;
-  //       }
-  //     } else if (_pitch_warning_sent) {
-  //       if (_pitch_safe_start_ms == 0U) {
-  //         _pitch_safe_start_ms = now_ms;
-  //       }
-
-  //       const uint32_t recovery_delay_ms =
-  //           static_cast<uint32_t>(MAX(rover.g.bst_pitch_delay.get(), 0));
-  //       if (now_ms - _pitch_safe_start_ms >= recovery_delay_ms) {
-  //         GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "[BST] Pitch Safe - Resuming");
-  //         _pitch_warning_sent = false;
-  //         _pitch_safe_start_ms = 0U;
-  //       } else {
-  //         // Duy trì giới hạn tốc độ trong thời gian trễ phục hồi
-  //         const float max_allowed_speed = wp_speed_max * pitch_scale;
-  //         if (desired_speed > max_allowed_speed) {
-  //           desired_speed = max_allowed_speed;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
-  // 3. PITCH SAFETY LOGIC (GLOBAL PROCESS - ANGLE & ACCELERATION PREDICTIVE
-  // LIMIT)
+  // 3. Shoes_Agtech PITCH SAFETY (Auto/BST) - gioi han toc do theo goc & gia toc goc Pitch
   if (rover.g.bst_pitch_en.get() == 1) {
     // Reset state if not in autonomous flight
     if (!is_auto || !is_armed) {
@@ -653,51 +550,40 @@ void Mode::navigate_to_waypoint() {
       _last_pitch_rate_rads = 0.0f;
       _filtered_pitch_accel_degs2 = 0.0f;
     } else {
-      // 3.1. Trích xuất dữ liệu tư thế và vận tốc góc từ IMU
+      // 3.1. Goc Pitch va van toc goc truc Y (rad/s) tu IMU
       const float pitch_deg = degrees(rover.ahrs.get_pitch());
-
-      // Lấy vận tốc góc trục Y (Pitch rate - q) từ Gyro (đơn vị: rad/s)
       const Vector3f &gyro = rover.ahrs.get_gyro();
       const float current_pitch_rate_rads = gyro.y;
 
-      // 3.2. Tính toán gia tốc góc Pitch thô (Raw Angular Acceleration) bằng
-      // sai phân hữu hạn
+      // 3.2. Gia toc goc Pitch tho - sai phan huu han (tranh chia cho 0)
       float raw_pitch_accel_degs2 = 0.0f;
-      if (rover.G_Dt > 0.0001f) { // Hạn chế lỗi chia cho 0 (Undefined Behavior)
+      if (rover.G_Dt > 0.0001f) {
         raw_pitch_accel_degs2 =
             degrees(current_pitch_rate_rads - _last_pitch_rate_rads) /
             rover.G_Dt;
       }
-      _last_pitch_rate_rads =
-          current_pitch_rate_rads; // Lưu trạng thái cho chu kỳ kế tiếp
+      _last_pitch_rate_rads = current_pitch_rate_rads;
 
-      // 3.3. Áp dụng bộ lọc thông thấp (Low-Pass Filter) tần số cắt ~4Hz để
-      // triệt tiêu nhiễu rung động cơ Công thức: Y[k] = alpha * X[k] + (1 -
-      // alpha) * Y[k-1] Với dt = 0.02s (50Hz), hằng số thời gian RC =
-      // 1/(2*pi*f_cut) = 0.04s -> lpf_alpha = dt/(RC+dt) = 0.33
+      // 3.3. LPF ~4Hz loc nhieu rung dong co: alpha = dt/(0.04+dt)
       const float lpf_alpha =
           constrain_float(rover.G_Dt / (0.04f + rover.G_Dt), 0.05f, 1.0f);
       _filtered_pitch_accel_degs2 =
           (lpf_alpha * raw_pitch_accel_degs2) +
           ((1.0f - lpf_alpha) * _filtered_pitch_accel_degs2);
 
-      // 3.4. Định nghĩa ngưỡng an toàn (Lấy tham số từ hệ thống)
-
+      // 3.4. Nguong an toan (tham so he thong)
       const float safe_pitch_down_limit = -fabsf(g.safe_pitch_down.get());
       const float safe_pitch_up_limit = fabsf(g.safe_pitch_up.get());
-
-      // Đọc trực tiếp từ tham số hệ thống SAFE_PITCH_ACCEL mới
       const float safe_pitch_accel_limit =
           fabsf(rover.g.safe_pitch_accel.get());
 
-      // 3.5. Kiểm tra điều kiện vi phạm
+      // 3.5. Kiem tra vi pham nguong goc / quan tinh
       const bool is_angle_bad = (pitch_deg < safe_pitch_down_limit) ||
                                 (pitch_deg > safe_pitch_up_limit);
       const bool is_inertia_bad =
           (fabsf(_filtered_pitch_accel_degs2) > safe_pitch_accel_limit);
       const bool is_pitch_bad = is_angle_bad || is_inertia_bad;
 
-      // Cấu hình dải scale rộng từ 0.0f (0%) đến 1.0f (100%)
       const float pitch_scale_param = rover.g.bst_pitch_scale.get() * 0.01f;
       const float pitch_scale = constrain_float(pitch_scale_param, 0.0f, 1.0f);
 
@@ -739,6 +625,11 @@ void Mode::navigate_to_waypoint() {
         }
       }
     }
+  } else {
+    _pitch_warning_sent = false;
+    _pitch_safe_start_ms = 0U;
+    _last_pitch_rate_rads = 0.0f;
+    _filtered_pitch_accel_degs2 = 0.0f;
   }
   // 4. DEBUG (COMMON)
   static uint32_t last_dbg_ms = 0;
