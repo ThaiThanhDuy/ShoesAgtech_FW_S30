@@ -271,44 +271,17 @@ public:
   void handle_tack_request() override;
 
 protected:
-  bool _enter() override;
-
-private:
-  // Shoes_Agtech: trang thai dong hoc cua Rail Mode (S30)
-  struct RailModeState {
-    // --- CÁC MỐC THỜI GIAN HỆ THỐNG (SYSTEM TIMERS) ---
-    uint32_t last_update_ms = 0U;
-    uint32_t rail_phase1_start_ms = 0U;
-    uint32_t stable_start_ms = 0U;
-    uint32_t pitch_safe_start_ms = 0U;
-    uint32_t last_log_ms = 0U;
-    uint32_t last_breakout_ms = 0U;
-
-    // --- CÁC BIẾN TRẠNG THÁI ĐỘNG LỰC HỌC (DYNAMIC FLOATS) ---
-    float last_speed = 0.0f;
-    float ramped_speed = 0.0f;
-    float captured_throttle = 0.0f;
-    float filtered_throttle = 0.0f;
-    float last_ema_throttle = 0.0f;
-    float filtered_pitch_accel_deg_s2 = 0.0f;
-    float last_pitch_rate_deg_s = 0.0f;
-
-    // --- THEO DOI BIEN DONG GA (THROTTLE SPREAD) GIUA 2 LAN LOG ---
-    float throt_window_min = 0.0f;
-    float throt_window_max = 0.0f;
-
-    // --- CÁC CỜ GIÁM SÁT ĐIỀU KHIỂN (FLAGS & INTEGERS) ---
-    int8_t last_armed = 0;
-    int8_t last_enable = -1;
-
-    bool duration_timeout_triggered =
-        false; // Cờ chốt trạng thái khóa ga hoàn toàn
-    bool target_speed_reached =
-        false; // Cờ xác nhận đã vượt qua giai đoạn đề ba thành công
-    bool pitch_warning_sent = false;
-  };
-
-  RailModeState rail_state_;
+  // Define new param in mode arco
+  uint32_t _rail_last_update_ms{0U};
+  uint32_t _rail_last_log_ms{0U};
+  uint32_t _rail_pitch_safe_start_ms{0U};
+  float _rail_last_speed{-1.0f};
+  float _rail_ramped_speed{0.0f};
+  float _rail_last_pitch_rate_rads{0.0f};
+  float _rail_filtered_pitch_accel_degs2{0.0f};
+  int8_t _rail_last_enable{-1};
+  bool _rail_last_armed{false};
+  bool _rail_pitch_warning_sent{false};
 };
 
 class ModeAuto : public Mode {
