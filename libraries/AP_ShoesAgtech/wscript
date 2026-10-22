@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+# encoding: utf-8
+
+
+def build(bld):
+    # AP_ShoesAgtech.cpp (chung: param, constructor, init, update, SIM)
+    # AP_ShoesAgtech_Flow.cpp (Module 1 - Bom + cam bien luu luong)
+    # AP_ShoesAgtech_Disc.cpp (Module 3 rut gon - chi dia rai ly tam)
+    bld.ap_library(
+        name='AP_ShoesAgtech',
+        src=['AP_ShoesAgtech.cpp', 'AP_ShoesAgtech_Flow.cpp',
+             'AP_ShoesAgtech_Disc.cpp'],
+        dependencies=['AP_HAL', 'AP_Param', 'AP_Common', 'AP_Math',
+                      'GCS_MAVLink', 'AP_AHRS', 'RC_Channel', 'SRV_Channel',
+                      'AP_Mission'],
+    )

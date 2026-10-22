@@ -21,6 +21,7 @@ def build(bld):
             'AP_Torqeedo',
             'AC_PrecLand',
             'AP_IRLock',
+            'AP_ShoesAgtech',  # [AP_ShoesAgtech] SA_ENABLE / SA_ROBOT_ID
         ],
     )
 

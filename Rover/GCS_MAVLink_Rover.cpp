@@ -187,6 +187,42 @@ void GCS_MAVLINK_Rover::send_rangefinder() const
 }
 #endif  // AP_MAVLINK_MSG_RANGEFINDER_SENDING_ENABLED
 
+// [AP_ShoesAgtech] -------------------------------------------------------
+// Stream du lieu bom + cam bien luu luong len GCS bang DEBUG_FLOAT_ARRAY
+// (msg 350), array_id=0 "SA_DATA" (giu nguyen vi tri [0..4] nhu S16):
+//     [0] flow_rate     (L/min, EMA)
+//     [1] flow_rate_avg (L/min, MA)
+//     [2] flow_target   (L/min)
+//     [3] pump_pwm      (us)
+//     [4] spray_mode    (0=PASSTHROUGH 1=FLOW_PID MIX_STD 2=FLOW_PID MIX_CNT)
+// Mission Planner: Ctrl+F > MAVLink Inspector > DEBUG_FLOAT_ARRAY
+void GCS_MAVLINK_Rover::send_shoesagtech_debug_arrays()
+{
+    const AP_ShoesAgtech &sa = rover.g2.custom_nav;
+    if (!sa.is_enabled()) {
+        return;
+    }
+
+    // name[10] va data[58] phai dung do dai field cua DEBUG_FLOAT_ARRAY,
+    // neu khong mav_array_memcpy() se doc vuot mang
+    const char data_name[10] = "SA_DATA";
+    // Day hoat dong YF-S402B la 0.3-6 L/min -> duoi 0.01 la nhieu, ep ve 0
+    const float FLOW_NOISE_FLOOR = 0.01f;
+    auto declutter_flow = [&](float v) -> float {
+        return (fabsf(v) < FLOW_NOISE_FLOOR) ? 0.0f : v;
+    };
+
+    float data[58] = {};
+    data[0] = declutter_flow(sa.get_flow_rate_lmin());
+    data[1] = declutter_flow(sa.get_flow_rate_avg());
+    data[2] = sa.get_flow_target();
+    data[3] = (float)sa.get_pump_pwm();
+    data[4] = (float)sa.get_spray_mode();
+
+    mavlink_msg_debug_float_array_send(chan, AP_HAL::millis64(), data_name, 0, data);
+}
+// [/AP_ShoesAgtech] -------------------------------------------------------
+
 #if AP_RANGEFINDER_ENABLED
 void GCS_MAVLINK_Rover::send_water_depth()
 {
@@ -460,6 +496,13 @@ bool GCS_MAVLINK_Rover::try_send_message(enum ap_message id)
         send_water_depth();
         break;
 #endif  // AP_RANGEFINDER_ENABLED
+
+    // [AP_ShoesAgtech]
+    case MSG_FLOW_DATA:
+        CHECK_PAYLOAD_SIZE(DEBUG_FLOAT_ARRAY);
+        send_shoesagtech_debug_arrays();
+        break;
+    // [/AP_ShoesAgtech]
 
     default:
         return GCS_MAVLINK::try_send_message(id);

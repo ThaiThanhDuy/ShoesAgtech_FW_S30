@@ -14,6 +14,9 @@
 #include <AP_SmartRTL/AP_SmartRTL.h>
 #include <AP_Stats/AP_Stats.h>
 #include <AP_WindVane/AP_WindVane.h>
+// [AP_ShoesAgtech] SA_ENABLE / SA_ROBOT_ID
+#include <AP_ShoesAgtech/AP_ShoesAgtech.h>
+// [/AP_ShoesAgtech]
 
 #define AP_PARAM_VEHICLE_NAME rover
 
@@ -385,6 +388,10 @@ public:
 
   // control over servo output ranges
   SRV_Channels servo_channels;
+
+  // [AP_ShoesAgtech] instance registered in ParametersG2 for SA_* params
+  AP_ShoesAgtech custom_nav;
+  // [/AP_ShoesAgtech]
 
 #if AP_ROVER_ADVANCED_FAILSAFE_ENABLED
   // advanced failsafe library

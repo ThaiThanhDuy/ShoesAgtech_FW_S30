@@ -15,6 +15,8 @@ enum LoggingParameters {
     LOG_NTUN_MSG,
     LOG_STEERING_MSG,
     LOG_GUIDEDTARGET_MSG,
+    // [AP_ShoesAgtech] Log message ID for flow sensor data (FLWD)
+    LOG_FLOW_DATA_MSG,
 };
 
 #define MASK_LOG_ATTITUDE_FAST  (1<<0)

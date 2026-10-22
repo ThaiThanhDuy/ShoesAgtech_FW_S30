@@ -971,6 +971,12 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: mode_circle.cpp
     AP_SUBGROUPINFO(mode_circle, "CIRC", 57, ParametersG2, ModeCircle),
 
+    // [AP_ShoesAgtech] slot 58 - prefix SA_ - SA_ENABLE / SA_ROBOT_ID
+    // @Group: SA_
+    // @Path: ../libraries/AP_ShoesAgtech/AP_ShoesAgtech.cpp
+    AP_SUBGROUPINFO(custom_nav, "SA_", 58, ParametersG2, AP_ShoesAgtech),
+    // [/AP_ShoesAgtech]
+
     AP_GROUPEND};
 
 // These auxiliary channel param descriptions are here so that users of beta

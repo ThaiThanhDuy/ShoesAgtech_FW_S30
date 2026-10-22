@@ -359,6 +359,8 @@ private:
   void Log_Write_RC(void);
   void Log_Write_Vehicle_Startup_Messages();
   void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page);
+  // [AP_ShoesAgtech] Log_Write_Flow_Realtime writes FLWD message to SD card
+  void Log_Write_Flow_Realtime(void);
 #endif
 
   // mode.cpp
@@ -443,6 +445,9 @@ private:
   static_assert(_failsafe_priorities[ARRAY_SIZE(_failsafe_priorities) - 1] ==
                     -1,
                 "_failsafe_priorities is missing the sentinel");
+
+  // [AP_ShoesAgtech] 10Hz scheduler task: flow sensor + pump control + log
+  void update_custom_flow(void);
 
 public:
   void failsafe_check();

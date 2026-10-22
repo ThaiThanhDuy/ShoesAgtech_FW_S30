@@ -467,8 +467,10 @@ void Mode::navigate_to_waypoint() {
   const float wp_speed_instant = g2.wp_nav.get_speed();
   const float wp_speed_max = g2.wp_nav.get_speed_max();
   float desired_speed = wp_speed_instant;
+  // Khi mission dung DO_SET_REVERSE, toc do am la hop le -> khong clamp/BST
+  const bool is_reversed = g2.wp_nav.get_reversed();
 
-  if (is_auto && (desired_speed < 0.0f)) {
+  if (is_auto && !is_reversed && (desired_speed < 0.0f)) {
     desired_speed = 0.0f;
   }
 
@@ -528,7 +530,7 @@ void Mode::navigate_to_waypoint() {
 
     // desired_speed >= 0: AUTO da clamp am ve 0 nen cho phep BST override ca pivot (speed=0)
     apply_minspeed =
-        is_auto && (MIN_FWD_SPEED > 0.01f) &&
+        is_auto && !is_reversed && (MIN_FWD_SPEED > 0.01f) &&
         (is_in_boost_window || (dist_m <= rover.g.bst_slow_dist.get())) &&
         (desired_speed >= 0.0f);
 
@@ -590,9 +592,9 @@ void Mode::navigate_to_waypoint() {
       if (is_pitch_bad) {
         // Áp trần giới hạn tốc độ dựa trên wp_speed_max để kiểm soát động năng
         const float max_allowed_speed = wp_speed_max * pitch_scale;
-        if (desired_speed > max_allowed_speed) {
-          desired_speed = max_allowed_speed;
-        }
+        // Gioi han theo do lon -> ap dung ca khi chay lui (toc do am)
+        desired_speed = constrain_float(desired_speed, -max_allowed_speed,
+                                        max_allowed_speed);
         _pitch_safe_start_ms = 0U; // Reset timer phục hồi khi còn vi phạm
 
         if (!_pitch_warning_sent) {
@@ -619,9 +621,9 @@ void Mode::navigate_to_waypoint() {
         } else {
           // Duy trì giới hạn tốc độ trong thời gian trễ phục hồi
           const float max_allowed_speed = wp_speed_max * pitch_scale;
-          if (desired_speed > max_allowed_speed) {
-            desired_speed = max_allowed_speed;
-          }
+          // Gioi han theo do lon -> ap dung ca khi chay lui (toc do am)
+          desired_speed = constrain_float(desired_speed, -max_allowed_speed,
+                                          max_allowed_speed);
         }
       }
     }

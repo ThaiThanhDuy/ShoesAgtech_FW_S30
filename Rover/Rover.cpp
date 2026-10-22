@@ -80,6 +80,8 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     SCHED_TASK(set_servos,            400,    200,  15),
     SCHED_TASK_CLASS(AP_GPS,              &rover.gps,              update,         50,  300,  18),
     SCHED_TASK_CLASS(AP_Baro,             &rover.barometer,        update,         10,  200,  21),
+    // [AP_ShoesAgtech] 10Hz task — priority 22 (between Baro=21 and Beacon=24)
+    SCHED_TASK(update_custom_flow,     10,     80,  22),
 #if AP_BEACON_ENABLED
     SCHED_TASK_CLASS(AP_Beacon,           &rover.g2.beacon,        update,         50,  200,  24),
 #endif
@@ -523,6 +525,19 @@ void Rover::update_current_mode(void)
 
     control_mode->update();
 }
+
+// [AP_ShoesAgtech] -------------------------------------------------------
+void Rover::update_custom_flow(void)
+{
+    // Toc do DAT cho mission (WP_SPEED, cap nhat qua DO_CHANGE_SPEED/GCS
+    // SET_SPEED) — dung cho cong thuc FLOW_MODE=1 thay vi toc do GPS tuc thoi
+    g2.custom_nav.set_target_speed(g2.wp_nav.get_speed_max());
+    g2.custom_nav.update();       // flow calc + spray control + console log
+#if HAL_LOGGING_ENABLED
+    Log_Write_Flow_Realtime();    // write FLWD to SD card
+#endif
+}
+// [/AP_ShoesAgtech] -------------------------------------------------------
 
 // vehicle specific waypoint info helpers
 bool Rover::get_wp_distance_m(float &distance) const

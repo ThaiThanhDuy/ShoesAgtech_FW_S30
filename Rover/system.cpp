@@ -152,6 +152,9 @@ void Rover::init_ardupilot()
 
     // flag that initialisation has completed
     initialised = true;
+
+    // [AP_ShoesAgtech] attach GPIO IRQ for flow sensor
+    g2.custom_nav.init();
 }
 
 // update the ahrs flyforward setting which can allow

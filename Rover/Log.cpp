@@ -240,6 +240,31 @@ void Rover::Log_Write_RC(void)
 #endif
 }
 
+// [AP_ShoesAgtech] ---------------------------------------------------------
+// Binary log message FLWD: TimeUS, Flow (L/min EMA), FlowAvg (moving avg)
+struct PACKED log_FlowData {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float flow_rate;
+    float flow_rate_avg;
+};
+
+void Rover::Log_Write_Flow_Realtime(void)
+{
+    if (!g2.custom_nav.is_enabled()) {
+        return;
+    }
+
+    struct log_FlowData pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_FLOW_DATA_MSG),
+        time_us       : AP_HAL::micros64(),
+        flow_rate     : g2.custom_nav.get_flow_rate_lmin(),
+        flow_rate_avg : g2.custom_nav.get_flow_rate_avg()
+    };
+    logger.WriteBlock(&pkt, sizeof(pkt));
+}
+// [/AP_ShoesAgtech] --------------------------------------------------------
+
 void Rover::Log_Write_Vehicle_Startup_Messages()
 {
     // only 200(?) bytes are guaranteed by AP_Logger
@@ -306,6 +331,15 @@ const LogStructure Rover::log_structure[] = {
     
     { LOG_GUIDEDTARGET_MSG, sizeof(log_GuidedTarget),
       "GUIP",  "QBffffff",    "TimeUS,Type,pX,pY,pZ,vX,vY,vZ", "s-mmmnnn", "F-000000" },
+
+// [AP_ShoesAgtech] FLWD log structure
+// @LoggerMessage: FLWD
+// @Description: Flow sensor measurements
+// @Field: TimeUS: Time since system startup
+// @Field: Flow: EMA filtered flow rate (L/min)
+// @Field: FlowAvg: Moving average flow rate (L/min)
+    { LOG_FLOW_DATA_MSG, sizeof(log_FlowData),
+      "FLWD", "Qff", "TimeUS,Flow,FlowAvg", "s--", "F--" },
 };
 
 uint8_t Rover::get_num_log_structures() const
